@@ -138,8 +138,8 @@ MESSAGES = [
     "你今天也辛苦了，晚安抱抱。",
 ]
 
-INTERVAL_MS = 70
-MAX_TOASTS = 100
+INTERVAL_MS = 50
+MAX_TOASTS = 500
 
 # 页面上不显示任何东西：把 Streamlit 的默认 padding 也干掉
 st.markdown(
