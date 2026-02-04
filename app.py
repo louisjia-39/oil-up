@@ -139,7 +139,7 @@ MESSAGES = [
 ]
 
 INTERVAL_MS = 70
-MAX_TOASTS = 50
+MAX_TOASTS = 100
 
 # 页面上不显示任何东西：把 Streamlit 的默认 padding 也干掉
 st.markdown(
