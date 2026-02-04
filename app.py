@@ -38,26 +38,25 @@ with st.expander("可选设置（卡就调大间隔）", expanded=False):
 
 msgs_json = json.dumps(MESSAGES, ensure_ascii=False)
 
-# 注意：这里用 f-string，所以 JS 里的 ${...} 必须写成 ${{...}} 来转义给 Python
-html = f"""
+html = """
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8" />
 <style>
-  body {{
+  body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
                  Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-  }}
-  #layer {{
+  }
+  #layer {
     position: fixed;
     inset: 0;
     z-index: 999999;
     pointer-events: none;
     overflow: hidden;
-  }}
-  .toast {{
+  }
+  .toast {
     position: absolute;
     width: 320px;
     max-width: 70vw;
@@ -70,43 +69,42 @@ html = f"""
     line-height: 1.25;
     word-break: break-word;
     animation: popIn 140ms ease-out;
-  }}
-  .meta {{
+  }
+  .meta {
     margin-top: 6px;
     font-size: 11px;
     opacity: 0.55;
-  }}
-  @keyframes popIn {{
-    from {{ transform: scale(0.96); opacity: 0; }}
-    to   {{ transform: scale(1.00); opacity: 1; }}
-  }}
+  }
+  @keyframes popIn {
+    from { transform: scale(0.96); opacity: 0; }
+    to   { transform: scale(1.00); opacity: 1; }
+  }
 </style>
 </head>
 <body>
 <div id="layer"></div>
 
 <script>
-  const MESSAGES = {msgs_json};
-  const intervalMs = {int(interval_ms)};
-  const maxToasts = {int(max_toasts)};
+  const MESSAGES = __MSGS_JSON__;
+  const intervalMs = __INTERVAL_MS__;
+  const maxToasts = __MAX_TOASTS__;
 
-  function randInt(n) {{
+  function randInt(n) {
     return Math.floor(Math.random() * n);
-  }}
+  }
 
-  function randomPastelBg() {{
+  function randomPastelBg() {
     const h = randInt(360);
     const s = 70 + randInt(11);
     const l = 88 + randInt(6);
-    // 关键：${{h}} 这种写法是为了让 Python f-string 输出 ${h} 给 JS
-    return `hsl(${{h}}, ${{s}}%, ${{l}}%)`;
-  }}
+    return `hsl(${h}, ${s}%, ${l}%)`;
+  }
 
-  function clamp(v, lo, hi) {{
+  function clamp(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v));
-  }}
+  }
 
-  function createToast(text) {{
+  function createToast(text) {
     const layer = document.getElementById("layer");
     const toast = document.createElement("div");
     toast.className = "toast";
@@ -118,8 +116,8 @@ html = f"""
     const ss = String(now.getSeconds()).padStart(2, "0");
 
     toast.innerHTML = `
-      <div>${{text}}</div>
-      <div class="meta">${{hh}}:${{mm}}:${{ss}}</div>
+      <div>${text}</div>
+      <div class="meta">${hh}:${mm}:${ss}</div>
     `;
 
     layer.appendChild(toast);
@@ -135,21 +133,27 @@ html = f"""
     const x = clamp(margin + Math.random() * maxX, margin, Math.max(margin, maxX));
     const y = clamp(margin + Math.random() * maxY, margin, Math.max(margin, maxY));
 
-    toast.style.left = `${{x}}px`;
-    toast.style.top  = `${{y}}px`;
+    toast.style.left = `${x}px`;
+    toast.style.top  = `${y}px`;
 
-    while (layer.children.length > maxToasts) {{
+    while (layer.children.length > maxToasts) {
       layer.removeChild(layer.firstElementChild);
-    }}
-  }}
+    }
+  }
 
-  setInterval(() => {{
+  setInterval(() => {
     const msg = MESSAGES[randInt(MESSAGES.length)];
     createToast(msg);
-  }}, intervalMs);
+  }, intervalMs);
 </script>
 </body>
 </html>
 """
+
+html = (
+    html.replace("__MSGS_JSON__", msgs_json)
+        .replace("__INTERVAL_MS__", str(int(interval_ms)))
+        .replace("__MAX_TOASTS__", str(int(max_toasts)))
+)
 
 st.components.v1.html(html, height=120, scrolling=False)
