@@ -29,11 +29,8 @@ MESSAGES = [
     "有我在，你可以放心做你自己。",
 ]
 
-DEFAULT_INTERVAL_MS = 10   # 0.01s
+DEFAULT_INTERVAL_MS = 10
 DEFAULT_MAX_TOASTS = 50
-
-interval_ms = DEFAULT_INTERVAL_MS
-max_toasts = DEFAULT_MAX_TOASTS
 
 with st.expander("可选设置（卡就调大间隔）", expanded=False):
     interval_ms = st.number_input("弹窗间隔（毫秒）", 1, 2000, DEFAULT_INTERVAL_MS, 1)
@@ -41,6 +38,7 @@ with st.expander("可选设置（卡就调大间隔）", expanded=False):
 
 msgs_json = json.dumps(MESSAGES, ensure_ascii=False)
 
+# 注意：这里用 f-string，所以 JS 里的 ${...} 必须写成 ${{...}} 来转义给 Python
 html = f"""
 <!DOCTYPE html>
 <html>
@@ -52,8 +50,6 @@ html = f"""
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
                  Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
   }}
-
-  /* 全屏浮层容器 */
   #layer {{
     position: fixed;
     inset: 0;
@@ -61,11 +57,10 @@ html = f"""
     pointer-events: none;
     overflow: hidden;
   }}
-
   .toast {{
     position: absolute;
-    width: 320px;             /* 你也可以改宽一点 */
-    max-width: 70vw;          /* 适配小屏 */
+    width: 320px;
+    max-width: 70vw;
     border-radius: 14px;
     padding: 12px 14px;
     color: rgba(0,0,0,0.85);
@@ -75,15 +70,12 @@ html = f"""
     line-height: 1.25;
     word-break: break-word;
     animation: popIn 140ms ease-out;
-    transform-origin: center;
   }}
-
   .meta {{
     margin-top: 6px;
     font-size: 11px;
     opacity: 0.55;
   }}
-
   @keyframes popIn {{
     from {{ transform: scale(0.96); opacity: 0; }}
     to   {{ transform: scale(1.00); opacity: 1; }}
@@ -106,7 +98,8 @@ html = f"""
     const h = randInt(360);
     const s = 70 + randInt(11);
     const l = 88 + randInt(6);
-    return `hsl(${h}, ${{s}}%, ${{l}}%)`;
+    // 关键：${{h}} 这种写法是为了让 Python f-string 输出 ${h} 给 JS
+    return `hsl(${{h}}, ${{s}}%, ${{l}}%)`;
   }}
 
   function clamp(v, lo, hi) {{
@@ -131,12 +124,10 @@ html = f"""
 
     layer.appendChild(toast);
 
-    // 随机位置：等 toast 挂上去后才能拿到实际尺寸
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const rect = toast.getBoundingClientRect();
 
-    // 给一点边距，避免贴边
     const margin = 12;
     const maxX = vw - rect.width - margin;
     const maxY = vh - rect.height - margin;
@@ -147,19 +138,15 @@ html = f"""
     toast.style.left = `${{x}}px`;
     toast.style.top  = `${{y}}px`;
 
-    // 超过 maxToasts 删除最早的（DOM 顺序最早在前）
     while (layer.children.length > maxToasts) {{
       layer.removeChild(layer.firstElementChild);
     }}
   }}
 
-  // 自动开始：高频产生
   setInterval(() => {{
     const msg = MESSAGES[randInt(MESSAGES.length)];
     createToast(msg);
   }}, intervalMs);
-
-  // 旋转屏幕/改窗口大小时，避免已有 toast 跑到屏幕外（简单处理：不重排，只让新 toast 正常）
 </script>
 </body>
 </html>
